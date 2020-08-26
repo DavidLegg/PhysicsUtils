@@ -186,11 +186,13 @@ Units can be composed using standard mathematical operations, though errors will
         return unit
 
     @staticmethod
-    def define(short_name, long_name, quantity, make_standard=True):
+    def define(short_name, long_name, quantity, make_standard=True, is_prefix='auto'):
         '''Define a new named Unit, equaling one of Quantity.
 
     The Dimension for this Unit is derived automatically from quantity.
-    If make_standard is True, will set this named Unit as the standard Unit for that Dimension, used for automatic naming.'''
+    If make_standard is True, will set this named Unit as a standard Unit for that Dimension, used for automatic naming.
+    If is_prefix is 'auto', will treat this unit as a prefix if dimension is SCALAR_DIM. Set to False to not treat unit as a prefix, or True to force prefix behavior.
+    Note that setting is_prefix to True for non-SCALAR_DIM units will raise a ValueError.'''
         # Force quantity to be a Quantity, even if it comes in as a number or Unit instead
         quantity = Quantity(quantity, None)
         unit = Unit()
@@ -199,10 +201,12 @@ Units can be composed using standard mathematical operations, though errors will
         unit.dimension   = quantity.unit.dimension
         unit._si_factor  = quantity.value * quantity.unit._si_factor
         if make_standard:
-            if unit.dimension == SCALAR_DIM:
+            if unit.dimension == SCALAR_DIM and is_prefix in [True, 'auto']:
                 Unit._PREFIXES.append((unit._si_factor, unit))
-            else:
+            elif is_prefix in [False, 'auto']:
                 Unit._FOR_DIM[unit.dimension].append(unit)
+            else:
+                raise ValueError('Non-scalar dimension {} cannot be used as a prefix'.format(unit.dimension))
         return unit
 
     def descale(self):
@@ -349,7 +353,7 @@ Units can be composed using standard mathematical operations, though errors will
             return 'Unit ' + self._short_name + ' = ' + derivation
 
 # Need to define a scalar unit for Quantity to function properly
-SCALAR = Unit()
+SCALAR = Unit.base('', '(scalar)', SCALAR_DIM)
 
 class Quantity:
     '''Describes a numerical amount in a specified Unit.
@@ -506,7 +510,7 @@ TESLA   = Unit.define('T',  'tesla',   VOLT * SECOND / METER**2)
 HENRY   = Unit.define('H',  'henry',   OHM * SECOND)
 LUMEN   = Unit.define('lm', 'lumen',   CANDELA)
 LUX     = Unit.define('lx', 'lux',     CANDELA / METER**2)
-RADIAN  = Unit.define('', 'radian', SCALAR)
+RADIAN  = Unit.define('',   'radian',  SCALAR, is_prefix=False)
 
 # Prefixes
 
@@ -537,4 +541,4 @@ ELECTRONVOLT = Unit.define('eV', 'electronvolt', 1.602176634e-19*JOULE)
 AMU          = Unit.define('u', 'atomic mass unit', 1.6605390666050e-27*KILOGRAM)
 DALTON       = Unit.define('Da', 'dalton', AMU)
 ANGSTROM     = Unit.define('Å', 'angstrom', 1e-10*METER)
-DEGREE       = Unit.define('°', 'degree', 2*pi*RADIAN / 360)
+DEGREE       = Unit.define('°', 'degree', 2*pi*RADIAN / 360, is_prefix=False)
