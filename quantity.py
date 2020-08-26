@@ -1,5 +1,6 @@
 from collections import defaultdict
 from utils.number import ScientificNumber
+from math import pi
 
 class Dimension:
     '''The dimension that a Unit can belong to, e.g. Length or Time.
@@ -325,7 +326,7 @@ Units can be composed using standard mathematical operations, though errors will
 
         x.sort()
         return (('' if self._si_factor == 1 else 'x {} '.format(self._si_factor))
-                + ' '.join(str(k if v == 1 else '{}^{}'.format(k, v)) for k,v in x))
+                + (' '.join(str(k if v == 1 else '{}^{}'.format(k, v)) for k,v in x) if x else '(scalar)'))
 
     def description(self):
         '''Returns a long-form description of the unit, including the dimensions and derivation if appropriate.'''
@@ -505,6 +506,7 @@ TESLA   = Unit.define('T',  'tesla',   VOLT * SECOND / METER**2)
 HENRY   = Unit.define('H',  'henry',   OHM * SECOND)
 LUMEN   = Unit.define('lm', 'lumen',   CANDELA)
 LUX     = Unit.define('lx', 'lux',     CANDELA / METER**2)
+RADIAN  = Unit.define('', 'radian', SCALAR)
 
 # Prefixes
 
@@ -521,7 +523,7 @@ DEKA  = Unit.define('da', 'deka',  1e1)
 DECI  = Unit.define('d',  'deci',  1e-1)
 CENTI = Unit.define('c',  'centi', 1e-2)
 MILLI = Unit.define('m',  'milli', 1e-3)
-MICRO = Unit.define('mu', 'micro', 1e-6)
+MICRO = Unit.define('μ',  'micro', 1e-6)
 NANO  = Unit.define('n',  'nano',  1e-9)
 PICO  = Unit.define('p',  'pico',  1e-12)
 FEMTO = Unit.define('f',  'femto', 1e-15)
@@ -535,3 +537,4 @@ ELECTRONVOLT = Unit.define('eV', 'electronvolt', 1.602176634e-19*JOULE)
 AMU          = Unit.define('u', 'atomic mass unit', 1.6605390666050e-27*KILOGRAM)
 DALTON       = Unit.define('Da', 'dalton', AMU)
 ANGSTROM     = Unit.define('Å', 'angstrom', 1e-10*METER)
+DEGREE       = Unit.define('°', 'degree', 2*pi*RADIAN / 360)
